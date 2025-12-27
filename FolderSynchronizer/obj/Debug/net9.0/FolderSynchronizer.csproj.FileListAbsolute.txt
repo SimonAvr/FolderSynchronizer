@@ -1,0 +1,14 @@
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\FolderSynchronizer.GeneratedMSBuildEditorConfig.editorconfig
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\FolderSynchronizer.AssemblyInfoInputs.cache
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\FolderSynchronizer.AssemblyInfo.cs
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\FolderSynchronizer.csproj.CoreCompileInputs.cache
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\bin\Debug\net9.0\FolderSynchronizer.exe
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\bin\Debug\net9.0\FolderSynchronizer.deps.json
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\bin\Debug\net9.0\FolderSynchronizer.runtimeconfig.json
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\bin\Debug\net9.0\FolderSynchronizer.dll
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\bin\Debug\net9.0\FolderSynchronizer.pdb
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\FolderSynchronizer.dll
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\refint\FolderSynchronizer.dll
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\FolderSynchronizer.pdb
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\FolderSynchronizer.genruntimeconfig.cache
+D:\Users\simon\Desktop\FolderSynchronizer\FolderSynchronizer\obj\Debug\net9.0\ref\FolderSynchronizer.dll
