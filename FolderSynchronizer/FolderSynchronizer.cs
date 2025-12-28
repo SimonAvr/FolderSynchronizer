@@ -21,7 +21,6 @@ public class FolderSynchronizer()
     public static async Task Main(string[] args)
     {
         var config = ValidateVariables(args);
-        //var config = new SyncConfig(10, @"D:\Users\simon\Desktop\test\", @"D:\Users\simon\Desktop\replica\", @"D:\Users\simon\Desktop\log.txt");
         Logger.Initialize(config.LogFilePath);
 
         Synchronizator sync = new Synchronizator(config.replicaFolderPath, config.sourceFolderPath);
