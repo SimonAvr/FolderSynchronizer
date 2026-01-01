@@ -4,37 +4,45 @@ public static class Logger
 {
     private static string? logFilePath;
     private static bool isInitialized;
+    private static readonly object syncRoot = new();
 
-    public enum logType
+    public enum LogType
     {
         Info,
         Warning,
         Error
     }
+
     public static void Initialize(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
             throw new ArgumentException("Log file path is empty");
 
         var dir = Path.GetDirectoryName(path);
-        if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
-            throw new DirectoryNotFoundException($"Log file path does not found: {path}");
+        if (string.IsNullOrEmpty(dir))
+            throw new DirectoryNotFoundException($"Log file directory not found: {path}");
+
+        Directory.CreateDirectory(dir);
 
         logFilePath = path;
         isInitialized = true;
     }
 
-    public static void addLog(string message, logType type)
+    public static void AddLog(string message, LogType type)
     {
         EnsureInitialized();
         var logContent = $"[{type}] {DateTime.Now:HH:mm:ss} {message}";
 
-        Console.WriteLine(logContent);
-        using (StreamWriter sw = File.AppendText(logFilePath))
+        lock (syncRoot)
         {
-            sw.WriteLine(logContent);
+            Console.WriteLine(logContent);
+            using (StreamWriter sw = File.AppendText(logFilePath))
+            {
+                sw.WriteLine(logContent);
+            }
         }
     }
+
     private static void EnsureInitialized()
     {
         if (!isInitialized)

@@ -1,3 +1,4 @@
+using System;
 using System.Security.Cryptography;
 using FolderSynchronizer;
 
@@ -5,6 +6,7 @@ public class Synchronizator
 {
     private readonly string replicaRootPath;
     private readonly string sourceRootPath;
+    private readonly StringComparer pathComparer;
 
     private sealed record Snapshot(
         string Root,
@@ -19,6 +21,9 @@ public class Synchronizator
     {
         this.replicaRootPath = ValidateDir(replicaRootPath, nameof(replicaRootPath));
         this.sourceRootPath = ValidateDir(sourceRootPath, nameof(sourceRootPath));
+        pathComparer = OperatingSystem.IsWindows()
+            ? StringComparer.OrdinalIgnoreCase
+            : StringComparer.Ordinal;
     }
 
     private static string ValidateDir(string path, string paramName)
@@ -34,20 +39,20 @@ public class Synchronizator
 
     public void Synchronize()
     {
-        Logger.addLog("Synchronization started", Logger.logType.Info);
+        Logger.AddLog("Synchronization started", Logger.LogType.Info);
         var source = GetSnapshot(sourceRootPath);
         var replica = GetSnapshot(replicaRootPath);
 
         // Directories
-        var dirsToCreate = source.DictionariesPaths.Keys.Except(replica.DictionariesPaths.Keys);
-        var dirsToDelete = replica.DictionariesPaths.Keys.Except(source.DictionariesPaths.Keys);
+        var dirsToCreate = source.DictionariesPaths.Keys.Except(replica.DictionariesPaths.Keys, pathComparer);
+        var dirsToDelete = replica.DictionariesPaths.Keys.Except(source.DictionariesPaths.Keys, pathComparer);
 
         CreateDirectories(dirsToCreate);
 
         // Files
-        var filesToCopy = source.FilesPaths.Keys.Except(replica.FilesPaths.Keys);
-        var filesToDelete = replica.FilesPaths.Keys.Except(source.FilesPaths.Keys);
-        var filesToMaybeUpdate = source.FilesPaths.Keys.Intersect(replica.FilesPaths.Keys);
+        var filesToCopy = source.FilesPaths.Keys.Except(replica.FilesPaths.Keys, pathComparer);
+        var filesToDelete = replica.FilesPaths.Keys.Except(source.FilesPaths.Keys, pathComparer);
+        var filesToMaybeUpdate = source.FilesPaths.Keys.Intersect(replica.FilesPaths.Keys, pathComparer);
 
         CopyFiles(filesToCopy);
         UpdateFiles(filesToMaybeUpdate);
@@ -55,22 +60,22 @@ public class Synchronizator
 
         // Delete directories last
         DeleteDirectories(dirsToDelete);
-        Logger.addLog("Synchronization performed successfully", Logger.logType.Info);
+        Logger.AddLog("Synchronization performed successfully", Logger.LogType.Info);
     }
 
     private Snapshot GetSnapshot(string rootPath)
     {
         var (files, dirs) = FilesSearcher.GetFilesAndDirectories(rootPath);
 
-        var fileMap = files.ToDictionary(full => Path.GetRelativePath(
-            rootPath, full),
+        var fileMap = files.ToDictionary(
+            full => Path.GetRelativePath(rootPath, full),
             full => full,
-            StringComparer.OrdinalIgnoreCase);
+            pathComparer);
 
-        var dirsMap = dirs.ToDictionary(full => Path.GetRelativePath(
-            rootPath, full),
+        var dirsMap = dirs.ToDictionary(
+            full => Path.GetRelativePath(rootPath, full),
             full => full,
-            StringComparer.OrdinalIgnoreCase);
+            pathComparer);
 
         return new Snapshot(rootPath, fileMap, dirsMap);
     }
@@ -84,7 +89,7 @@ public class Synchronizator
             {
                 var dst = ToReplicaFull(rel);
                 Directory.CreateDirectory(dst);
-                Logger.addLog($"Directory created: {dst}", Logger.logType.Info);
+                Logger.AddLog($"Directory created: {dst}", Logger.LogType.Info);
             }, $"Create directory: {rel}");
         }
     }
@@ -97,7 +102,7 @@ public class Synchronizator
             {
                 var dst = ToReplicaFull(rel);
                 Directory.Delete(dst);
-                Logger.addLog($"Directory deleted: {dst}", Logger.logType.Info);
+                Logger.AddLog($"Directory deleted: {dst}", Logger.LogType.Info);
             }, $"Delete directory: {rel}");
         }
     }
@@ -113,7 +118,7 @@ public class Synchronizator
 
                 File.Copy(src, dst, overwrite: true);
 
-                Logger.addLog($"File copied: {src} -> {dst}", Logger.logType.Info);
+                Logger.AddLog($"File copied: {src} -> {dst}", Logger.LogType.Info);
             }, $"Copy file: {rel}");
         }
     }
@@ -128,7 +133,7 @@ public class Synchronizator
                 if (File.Exists(dst))
                 {
                     File.Delete(dst);
-                    Logger.addLog($"File removed: {dst}", Logger.logType.Info);
+                    Logger.AddLog($"File removed: {dst}", Logger.LogType.Info);
                 }
             }, $"Delete file: {rel}");
         }
@@ -154,7 +159,15 @@ public class Synchronizator
                     sInfo.LastWriteTimeUtc == rInfo.LastWriteTimeUtc)
                     return;
 
-                // Strong check (only when needed)
+                if (sInfo.Length != rInfo.Length)
+                {
+                    File.Copy(src, dst, overwrite: true);
+                    File.SetLastWriteTimeUtc(dst, sInfo.LastWriteTimeUtc);
+                    Logger.AddLog($"File updated (length changed): {src} -> {dst}", Logger.LogType.Info);
+                    return;
+                }
+
+                // Strong check (only when sizes match)
                 if (GetFileMd5(src) == GetFileMd5(dst))
                     return;
 
@@ -163,7 +176,7 @@ public class Synchronizator
                 // keep timestamps in sync
                 File.SetLastWriteTimeUtc(dst, sInfo.LastWriteTimeUtc);
 
-                Logger.addLog($"File updated: {src} -> {dst}", Logger.logType.Info);
+                Logger.AddLog($"File updated: {src} -> {dst}", Logger.LogType.Info);
             }, $"Update file: {rel}");
         }
     }
@@ -173,7 +186,7 @@ public class Synchronizator
         try { action(); }
         catch (Exception e)
         {
-            Logger.addLog($"{context}. {e}", Logger.logType.Error);
+            Logger.AddLog($"{context}. {e}", Logger.LogType.Error);
         }
     }
 
